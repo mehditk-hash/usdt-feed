@@ -1,0 +1,12 @@
+{
+  "symbol": "USdt_1",
+  "name": "Tether USDt",
+  "price": "0.001168",
+  "liquidity": "15",
+  "volume_24h": "50",
+  "pair": "USdt_1/WBNB",
+  "fee": "0.25%",
+  "slippage_tolerance": "0.30%",
+  "risk": "High",
+  "updated_at": "2025-08-27T18:18:00+03:30"
+}
