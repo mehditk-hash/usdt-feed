@@ -3,22 +3,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SETH – Temporary Wallet View</title>
+  <title>SETH – Official Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.8.1/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      color: #ffffff;
+      padding: 40px;
+    }
+    img { margin-bottom: 20px; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .box {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #333;
+    }
+    small { opacity: 0.7; }
+  </style>
 </head>
-<body style="font-family: sans-serif; padding: 40px;">
 
-  <h1>SETH</h1>
+<body>
 
-  <p><strong>Network:</strong> BSC</p>
-  <p><strong>Contract:</strong> 0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF</p>
+<img src="./logo.png" alt="SETH Logo" width="120" />
 
-  <button disabled>
-    Connect Wallet (coming soon)
-  </button>
+<h1>SETH</h1>
+<p><b>Network:</b> BSC</p>
+<p><b>Contract:</b> 0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF</p>
 
-  <p style="margin-top:40px; font-size:14px; color:#666;">
+<button id="connect">Connect Wallet</button>
+
+<div class="box" id="result" style="display:none;">
+  <p><b>Wallet:</b> <span id="address"></span></p>
+  <p><b>Balance:</b> <span id="balance"></span> sETH</p>
+  <p><b>Decimals:</b> 18</p>
+</div>
+
+<p style="margin-top:30px;">
+  <small>
     This is a temporary visibility layer while Trust Wallet listing is being finalized.
-  </p>
+  </small>
+</p>
+
+<script>
+const contractAddress = "0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF";
+const abi = [
+  "function balanceOf(address) view returns (uint256)",
+  "function decimals() view returns (uint8)"
+];
+
+document.getElementById("connect").onclick = async () => {
+  if (!window.ethereum) {
+    alert("MetaMask not detected");
+    return;
+  }
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  const userAddress = await signer.getAddress();
+
+  const contract = new ethers.Contract(contractAddress, abi, provider);
+  const decimals = await contract.decimals();
+  const rawBalance = await contract.balanceOf(userAddress);
+  const balance = ethers.formatUnits(rawBalance, decimals);
+
+  document.getElementById("address").innerText = userAddress;
+  document.getElementById("balance").innerText = balance;
+  document.getElementById("result").style.display = "block";
+};
+</script>
 
 </body>
 </html>
