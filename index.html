@@ -4,8 +4,10 @@
 <head>
 <meta charset="UTF-8">
 <title>SETH Test Page</title>
+
 <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
 <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+
 <style>
   body { font-family: Arial, sans-serif; padding: 20px; }
   img { width: 80px; height: 80px; }
@@ -13,75 +15,105 @@
   .info { margin: 10px 0; }
 </style>
 </head>
+
 <body>
-  <h1>SETH Test Page</h1>
-  <img src="https://i.postimg.cc/vBbdx0Dc/1000074028.png" alt="SETH Logo">
-  <div class="info"><strong>Network:</strong> BSC</div>
-  <div class="info"><strong>Contract:</strong> 0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF</div>
-  <div class="info"><strong>Symbol:</strong> SETH | <strong>Decimals:</strong> 18</div>
-  <div class="info" id="balance">Balance: -</div>
-  <div class="info"><strong>Test Balance:</strong> 50 SETH</div>
-  
-  <button id="connectMetaMask">Connect MetaMask</button>
-  <button id="connectWC">Connect WalletConnect</button>
-  
-  <p><a href="https://etherscan.io/address/0x532be44794beb97b3f81511ff6d16cb0ffd8a1df" target="_blank">View on Etherscan</a></p>
-  <p>This is a temporary visibility layer while Trust Wallet listing is being finalized.</p>
+<h1>SETH Test Page</h1>
+
+<img src="https://i.postimg.cc/vBbdx0Dc/1000074028.png" alt="SETH Logo">
+
+<div class="info"><strong>Network:</strong> Ethereum Mainnet</div>
+<div class="info"><strong>Contract:</strong> 0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF</div>
+<div class="info"><strong>Symbol:</strong> SETH | <strong>Decimals:</strong> 18</div>
+
+<div class="info" id="balance">Balance: -</div>
+<div class="info"><strong>Test Balance:</strong> 50 SETH</div>
+
+<button id="connectMetaMask">Connect MetaMask</button>
+<button id="connectWC">Connect WalletConnect</button>
+
+<p>
+  <a href="https://etherscan.io/address/0x532be44794beb97b3f81511ff6d16cb0ffd8a1df" target="_blank">
+    View on Etherscan
+  </a>
+</p>
+
+<p>This is a temporary visibility layer while Trust Wallet listing is being finalized.</p>
 
 <script>
 const contractAddress = "0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF";
+
 const abi = [
-  {"constant":true,"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},
-  {"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"type":"function"},
-  {"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"type":"function"}
+  {
+    "constant": true,
+    "inputs": [{"name": "account","type": "address"}],
+    "name": "balanceOf",
+    "outputs": [{"name": "","type": "uint256"}],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [{"name": "","type": "uint8"}],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [{"name": "","type": "string"}],
+    "type": "function"
+  }
 ];
 
 let web3;
 let contract;
 
-async function connectMetaMask() {
-  if(window.ethereum) {
-    try {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      web3 = new Web3(window.ethereum);
-      const accounts = await web3.eth.getAccounts();
-      const user = accounts[0];
-      contract = new web3.eth.Contract(abi, contractAddress);
-      
-      const rawBalance = await contract.methods.balanceOf(user).call();
-      const decimals = await contract.methods.decimals().call();
-      const symbol = await contract.methods.symbol().call();
-      const balance = rawBalance / (10 ** decimals);
-      
-      document.getElementById('balance').innerText = `Balance: ${balance} ${symbol}`;
-    } catch(err) {
-      console.error(err);
-      document.getElementById('balance').innerText = 'Error connecting MetaMask';
-    }
-  } else {
-    document.getElementById('balance').innerText = 'MetaMask not detected';
-  }
-}
-
-async function connectWalletConnect() {
-  const provider = new WalletConnectProvider.default({
-    rpc: { 56: "https://bsc-dataseed.binance.org/" }
-  });
-  await provider.enable();
-  web3 = new Web3(provider);
-  const accounts = await web3.eth.getAccounts();
-  const user = accounts[0];
+async function readBalance(user) {
   contract = new web3.eth.Contract(abi, contractAddress);
 
   const rawBalance = await contract.methods.balanceOf(user).call();
   const decimals = await contract.methods.decimals().call();
   const symbol = await contract.methods.symbol().call();
+
   const balance = rawBalance / (10 ** decimals);
-  document.getElementById('balance').innerText = `Balance: ${balance} ${symbol}`;
+  document.getElementById('balance').innerText =
+    `Balance: ${balance} ${symbol}`;
 }
 
-document.getElementById('connectMetaMask').addEventListener('click', connectMetaMask);
-document.getElementById('connectWC').addEventListener('click', connectWalletConnect);
+// MetaMask
+async function connectMetaMask() {
+  if (!window.ethereum) {
+    document.getElementById('balance').innerText = 'MetaMask not detected';
+    return;
+  }
+
+  await window.ethereum.request({ method: 'eth_requestAccounts' });
+  web3 = new Web3(window.ethereum);
+
+  const accounts = await web3.eth.getAccounts();
+  await readBalance(accounts[0]);
+}
+
+// WalletConnect — Ethereum
+async function connectWalletConnect() {
+  const provider = new WalletConnectProvider.default({
+    rpc: {
+      1: "https://rpc.ankr.com/eth"
+    },
+    chainId: 1
+  });
+
+  await provider.enable();
+  web3 = new Web3(provider);
+
+  const accounts = await web3.eth.getAccounts();
+  await readBalance(accounts[0]);
+}
+
+document.getElementById('connectMetaMask').onclick = connectMetaMask;
+document.getElementById('connectWC').onclick = connectWalletConnect;
 </script>
+
 </body>
 </html>
