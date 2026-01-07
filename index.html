@@ -2,80 +2,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>SETH – Official Viewer</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.8.1/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <title>SETH Test Page</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f0f0f;
-      color: #ffffff;
-      padding: 40px;
-    }
-    img { margin-bottom: 20px; }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .box {
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #333;
-    }
-    small { opacity: 0.7; }
+    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
+    img { width: 120px; }
+    button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; }
+    .info { margin-top: 20px; }
   </style>
 </head>
-
 <body>
-
-<img src="./logo.png" alt="SETH Logo" width="120" />
-
-<h1>SETH</h1>
-<p><b>Network:</b> BSC</p>
-<p><b>Contract:</b> 0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF</p>
-
-<button id="connect">Connect Wallet</button>
-
-<div class="box" id="result" style="display:none;">
-  <p><b>Wallet:</b> <span id="address"></span></p>
-  <p><b>Balance:</b> <span id="balance"></span> sETH</p>
-  <p><b>Decimals:</b> 18</p>
-</div>
-
-<p style="margin-top:30px;">
-  <small>
-    This is a temporary visibility layer while Trust Wallet listing is being finalized.
-  </small>
-</p>
+  <img src="https://i.postimg.cc/vBbdx0Dc/1000074028.png" alt="SETH Logo">
+  <h1>SETH Test Page</h1>
+  <p><strong>Network:</strong> BSC</p>
+  <p><strong>Contract:</strong> 0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF</p>
+  <p><strong>Symbol:</strong> SETH</p>
+  <p><strong>Decimals:</strong> 18</p>
+  <p><strong>Test Balance:</strong> 50 SETH</p>
+  <button onclick="connectMetaMask()">Connect MetaMask</button>
+  <button onclick="connectWalletConnect()">Connect WalletConnect</button>
+  <div class="info" id="walletInfo"></div>
+  <p><a href="https://etherscan.io/address/0x532be44794beb97b3f81511ff6d16cb0ffd8a1df" target="_blank">View on Etherscan</a></p>
+  <p style="font-size:14px; color:#555;">This is a temporary visibility layer while Trust Wallet listing is being finalized.</p>
 
 <script>
-const contractAddress = "0x532be44794Beb97b3F81511Ff6d16CB0FFD8A1DF";
-const abi = [
-  "function balanceOf(address) view returns (uint256)",
-  "function decimals() view returns (uint8)"
-];
-
-document.getElementById("connect").onclick = async () => {
-  if (!window.ethereum) {
-    alert("MetaMask not detected");
-    return;
+let web3;
+async function connectMetaMask() {
+  if (window.ethereum) {
+    try {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      web3 = new Web3(window.ethereum);
+      const accounts = await web3.eth.getAccounts();
+      document.getElementById('walletInfo').innerHTML = `Connected: ${accounts[0]}`;
+    } catch (err) {
+      alert('MetaMask connection failed: ' + err.message);
+    }
+  } else {
+    alert('MetaMask not detected!');
   }
+}
 
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  const userAddress = await signer.getAddress();
-
-  const contract = new ethers.Contract(contractAddress, abi, provider);
-  const decimals = await contract.decimals();
-  const rawBalance = await contract.balanceOf(userAddress);
-  const balance = ethers.formatUnits(rawBalance, decimals);
-
-  document.getElementById("address").innerText = userAddress;
-  document.getElementById("balance").innerText = balance;
-  document.getElementById("result").style.display = "block";
-};
+async function connectWalletConnect() {
+  const provider = new WalletConnectProvider.default({
+    rpc: { 56: 'https://bsc-dataseed.binance.org/' }
+  });
+  await provider.enable();
+  web3 = new Web3(provider);
+  const accounts = await web3.eth.getAccounts();
+  document.getElementById('walletInfo').innerHTML = `Connected: ${accounts[0]}`;
+}
 </script>
-
 </body>
 </html>
